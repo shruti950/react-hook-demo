@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Link, useHistory } from "react-router-dom";
 import { useStateCallback } from "use-state-callback";
 import ReactPaginate from "react-paginate";
 const UserContainerHook = (
-  { fetchAllUsers, userData, loadingData, totalPage, fetchSearchedUser },
+  { fetchAllUsers, userData, totalPage, fetchSearchedUser, deleteUsers },
   props
 ) => {
   const [users, setUsers] = useState(userData);
@@ -13,10 +13,8 @@ const UserContainerHook = (
   const [searchTerm, setSearchTerm] = useState("");
   const [perPage] = useState(5);
   const [pageCount, setPageCount] = useState(0);
-  const [selectPage, setSelectPage] = useState(0);
   const history = useHistory();
-  const ref = useRef(userData);
-
+  const [currentPage, setCurrentPage] = useState(0);
   useEffect(() => {
     loadPage();
   }, []);
@@ -29,7 +27,7 @@ const UserContainerHook = (
   useEffect(() => {
     setPageCount(totalPage);
   }, [totalPage]);
-  useEffect(() => {}, [offset]);
+  // useEffect(() => {}, [offset]);
   const usePrevious = (value) => {
     const ref = useRef();
 
@@ -39,7 +37,6 @@ const UserContainerHook = (
     return ref.current;
   };
 
-  const prevOffset = usePrevious(offset);
   const prevUserData = usePrevious(userData);
   const prevTotalPage = usePrevious(totalPage);
 
@@ -58,20 +55,35 @@ const UserContainerHook = (
     setPageCount(totalPage);
   };
 
-  const deleteUserData = async (id, name) => {
+  const deleteUserData = async (id, name, page) => {
+    console.log(
+      "%c 🇦🇬: deleteUserData -> page ",
+      "font-size:16px;background-color:#875f40;color:white;",
+      page
+    );
     if (window.confirm(`Are you sure you want to Delete ${name}?`)) {
       await deleteUsers(id);
     } else {
       history.push("/home");
     }
-
-    fetchAllUsers(offset, perPage);
+    console.log(
+      "%c 🍽️: users.length ",
+      "font-size:16px;background-color:#c9273a;color:white;",
+      users.length
+    );
+    if (userData.length === 1) {
+      // fetchAllUsers(offset - 1, perPage);
+      // setOffset(offset - 1);
+      fetchAllUsers(1, perPage);
+      setOffset(1);
+    } else {
+      fetchAllUsers(offset, perPage);
+    }
   };
   // const setOffsetData()
   const handlePageClick = (e) => {
     const selectedPage = e.selected;
 
-    setSelectPage(e.selected);
     if (searchTerm === "") {
       const page = selectedPage + 1;
       setOffset(page);
@@ -85,7 +97,7 @@ const UserContainerHook = (
   };
   const addUser = async () => {
     history.push("/adduser");
-    fetchAllUsers(offset, perPage);
+    // fetchAllUsers(offset, perPage);
   };
   const editUserData = async (id) => {
     history.push(`/updateuser/${id}`);
@@ -155,7 +167,7 @@ const UserContainerHook = (
                     </Link>
                     <button
                       onClick={() => {
-                        deleteUserData(user._id, user.name);
+                        deleteUserData(user._id, user.name, offset);
                       }}
                       className="btn btn-danger btn-sm m-1 "
                     >
@@ -166,7 +178,7 @@ const UserContainerHook = (
               ))}
             </tbody>
           </table>
-
+          {console.log("pageCount 11", pageCount, offset)}
           <ReactPaginate
             previousLabel={"prev"}
             nextLabel={"next"}
@@ -179,6 +191,15 @@ const UserContainerHook = (
             containerClassName={"pagination"}
             subContainerClassName={"pages pagination"}
             activeClassName={"active"}
+            // currentPage={offset - 1}
+            forcePage={offset - 1}
+
+            // 					pageCount={(userData?.count || 5) / pageSize}
+
+            // previousLinkClassName={"pagination__link"}
+            // nextLinkClassName={"pagination__link"}
+            // disabledClassName={"pagination__link--disabled"}
+            // activeClassName={"active"}
           />
         </div>
       </Router>
@@ -186,6 +207,11 @@ const UserContainerHook = (
   );
 };
 const mapStateToProps = (state) => {
+  console.log(
+    "%c 👨‍👩‍👦: mapStateToProps -> state ",
+    "font-size:16px;background-color:#327d18;color:white;",
+    state
+  );
   const { users, loading, page } = state;
   return {
     userData: users,
@@ -199,6 +225,7 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(fetchAllUsers(offset, perPage)),
     fetchSearchedUser: (searchTerm, offset) =>
       dispatch(fetchSearchedUser(searchTerm, offset)),
+    deleteUsers: (id) => dispatch(deleteUsers(id)),
   };
 };
 export default connect(mapStateToProps, mapDispatchToProps)(UserContainerHook);

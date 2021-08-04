@@ -19,7 +19,7 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        users: payload,
+        users: [...payload],
         page: totalPage,
         error: "",
       };

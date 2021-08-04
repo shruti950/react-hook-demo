@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { useHistory, Link } from "react-router-dom";
-import { fetchUsers, insertUsers } from "../redux";
+import { fetchUsers, insertUsers, fetchAllUsers } from "../redux";
 import HeaderUser from "./HeaderUser";
 // import UserContainer from "./UserContainer";
 const initialState = {
@@ -9,28 +9,32 @@ const initialState = {
   age: "",
   email: "",
 };
-function UserContainerInsertHook({ userData, fetchUsers }) {
+function UserContainerInsertHook({
+  userData,
+  fetchUsers,
+  insertUsers,
+  fetchAllUsers,
+}) {
   const [user, setUser] = useState(initialState);
-  const [users, setUsers] = useState([]);
   const { name, age, email } = user;
   // const { id } = useParams();
   let history = useHistory();
   useEffect(() => {
     fetchUsers();
-    setUsers(userData);
   }, []);
   const onValueChange = (e) => {
+    e.preventDefault();
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
   const addUser = async (e) => {
     if (!name || !age || !email) {
       alert("Please add all the details");
+      history.push("/adduser");
+      return;
     } else {
       fetchUsers();
-
-      setUsers(userData);
-      const existEmail = users.filter((existingEmail) => {
+      const existEmail = userData.filter((existingEmail) => {
         if (email === existingEmail.email) {
           return true;
         }
@@ -43,11 +47,15 @@ function UserContainerInsertHook({ userData, fetchUsers }) {
         }
       });
       if (map.includes(true)) {
+        e.preventDefault();
         alert("Email already Exists");
+        history.push("/adduser");
+        return;
       } else {
-        await insertUsers(user);
+        insertUsers(user);
         history.push("/home");
-        history.push("/home");
+        fetchAllUsers();
+        return;
       }
       //
     }
@@ -92,7 +100,7 @@ function UserContainerInsertHook({ userData, fetchUsers }) {
             <button
               className="btn btn-primary"
               type="submit"
-              onClick={() => addUser()}
+              onClick={(event) => addUser(event)}
             >
               Submit
             </button>
@@ -107,7 +115,14 @@ const mapStateToProps = (state) => {
     userData: state.users,
   };
 };
-
-export default connect(mapStateToProps, { fetchUsers, insertUsers })(
-  UserContainerInsertHook
-);
+const mapDispatchToProps = (dispatch) => {
+  return {
+    fetchUsers: () => dispatch(fetchUsers()),
+    fetchAllUsers: () => dispatch(fetchAllUsers(1, 5)),
+    insertUsers: (user) => dispatch(insertUsers(user)),
+  };
+};
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(UserContainerInsertHook);
