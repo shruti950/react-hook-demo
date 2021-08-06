@@ -40,12 +40,6 @@ export const fetchSearchedUser = (searchTerm, offset) => {
 };
 
 export const fetchAllUsers = (offset, limit) => {
-  console.log(
-    "%c 🕒: fetchAllUsers -> offset, limit ",
-    "font-size:16px;background-color:#d8feb7;color:black;",
-    offset,
-    limit
-  );
   return (dispatch) => {
     dispatch(fetchUserRequest());
     axios
@@ -54,11 +48,6 @@ export const fetchAllUsers = (offset, limit) => {
       )
       .then((response) => {
         const user = response.data;
-        console.log(
-          "%c 🇮🇶: fetchAllUsers -> user ",
-          "font-size:16px;background-color:#12f38a;color:black;",
-          user
-        );
         dispatch(fetchUserSuccess(user.slice, user.page));
       })
       .catch((error) => {
@@ -92,7 +81,9 @@ export const insertUsers = (user) => {
         dispatch(fetchUserSuccess(users));
       })
       .catch((error) => {
-        dispatch(fetchUserFailure(error.msg));
+        // alert(error.response.data);
+
+        dispatch(fetchUserFailure(error.response));
       });
   };
 };

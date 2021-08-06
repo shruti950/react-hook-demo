@@ -12,6 +12,7 @@ const initialState = {
 
 const reducer = (state = initialState, action) => {
   const { type, payload, totalPage } = action;
+
   switch (type) {
     case FETCH_USER_REQUEST:
       return { ...state, loading: true, users: [], error: "" };

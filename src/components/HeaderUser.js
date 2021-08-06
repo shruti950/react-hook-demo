@@ -1,10 +1,5 @@
 import React from "react";
-import { useParams, useHistory, Redirect } from "react-router-dom";
-function HeaderUser(props) {
-  let history = useHistory();
-  const toHome = () => {
-    history.push("/home");
-  };
+function HeaderUser() {
   return (
     <nav className="navbar navbar-expand-sm bg-dark navbar-dark  ">
       <ul className="navbar-nav">

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { useHistory, Link } from "react-router-dom";
 import { fetchUsers, insertUsers, fetchAllUsers } from "../redux";
 import HeaderUser from "./HeaderUser";
-// import UserContainer from "./UserContainer";
+import { useForm } from "react-hook-form";
+import { useStateCallback } from "use-state-callback";
+
 const initialState = {
   name: "",
   age: "",
@@ -15,20 +17,58 @@ function UserContainerInsertHook({
   insertUsers,
   fetchAllUsers,
 }) {
-  const [user, setUser] = useState(initialState);
+  const [user, setUser] = useStateCallback(initialState);
   const { name, age, email } = user;
-  // const { id } = useParams();
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm();
   let history = useHistory();
   useEffect(() => {
     fetchUsers();
   }, []);
+  useEffect(() => {
+    if (Object.keys(errors).length === 0) {
+    }
+  }, [errors]);
   const onValueChange = (e) => {
     e.preventDefault();
+    if (e.target.name === "age") {
+      if (e.target.value <= 17) {
+        setError("age", {
+          type: "manual",
+          message: "Age must be valid! ",
+        });
+      } else {
+        setError("age", {
+          type: "manual",
+          message: " ",
+        });
+      }
+    }
+    if (e.target.name === "email") {
+      var re = /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/;
+      if (re.test(e.target.value) === false) {
+        setError("email", {
+          type: "manual",
+          message: "Email must be valid! ",
+        });
+        console.log(errors);
+      } else {
+        setError("email", {
+          type: "manual",
+          message: "",
+        });
+      }
+    }
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
   const addUser = async (e) => {
     if (!name || !age || !email) {
+      e.preventDefault();
       alert("Please add all the details");
       history.push("/adduser");
       return;
@@ -52,10 +92,24 @@ function UserContainerInsertHook({
         history.push("/adduser");
         return;
       } else {
-        insertUsers(user);
-        history.push("/home");
-        fetchAllUsers();
-        return;
+        var re = /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/;
+        if (re.test(user.email) === false || user.age <= 17) {
+          if (re.test(user.email) === false) {
+            alert("Email is not valid!");
+          }
+          if (user.age <= 17) {
+            alert("Age is must be 18+!");
+          }
+          e.preventDefault();
+
+          history.push("/adduser");
+          return;
+        } else {
+          insertUsers(user);
+          history.push("/home");
+          fetchAllUsers();
+          return;
+        }
       }
       //
     }
@@ -64,9 +118,9 @@ function UserContainerInsertHook({
   return (
     <div className="container ">
       <HeaderUser />
-      <form>
+      <form onSubmit={(event) => handleSubmit(addUser(event))}>
         <div className="form-group text-left">
-          <label>Name:</label>
+          <label htmlFor="name">Name:</label>
           <input
             type="text"
             name="name"
@@ -76,31 +130,46 @@ function UserContainerInsertHook({
           />
         </div>
         <div className="form-group text-left ">
-          <label className="font-weight-bolder">Age:</label>
+          <label htmlFor="age" className="font-weight-bolder">
+            Age:
+          </label>
           <input
-            type="text"
+            type="number"
+            {...register("age", { min: 18, max: 99, required: true })}
             name="age"
             value={age}
             className="form-control"
             onChange={onValueChange}
           />
+          {errors.age && (
+            <p className=" small font-weight-bold text-danger ">
+              {errors.age.message}
+            </p>
+          )}
         </div>
         <div className="form-group text-left ">
-          <label className="font-weight-bolder">Email:</label>
+          <label htmlFor="email" className="font-weight-bolder">
+            Email:
+          </label>
           <input
             type="email"
             name="email"
             value={email}
-            className="form-control"
+            className={` form-control`}
             onChange={onValueChange}
           />
+          {errors.email && (
+            <p className=" small font-weight-bold text-danger ">
+              {errors.email.message}
+            </p>
+          )}
         </div>
         <div className="form-group text-left">
           <Link to={{ pathname: `/home` }}>
             <button
               className="btn btn-primary"
               type="submit"
-              onClick={(event) => addUser(event)}
+              onClick={(event) => handleSubmit(addUser(event))}
             >
               Submit
             </button>

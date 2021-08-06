@@ -4,17 +4,19 @@ import { deleteUsers, fetchSearchedUser, fetchAllUsers } from "../redux";
 import { BrowserRouter as Router, Link, useHistory } from "react-router-dom";
 import { useStateCallback } from "use-state-callback";
 import ReactPaginate from "react-paginate";
-const UserContainerHook = (
-  { fetchAllUsers, userData, totalPage, fetchSearchedUser, deleteUsers },
-  props
-) => {
+const UserContainerHook = ({
+  fetchAllUsers,
+  userData,
+  totalPage,
+  fetchSearchedUser,
+  deleteUsers,
+}) => {
   const [users, setUsers] = useState(userData);
   const [offset, setOffset] = useStateCallback(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [perPage] = useState(5);
   const [pageCount, setPageCount] = useState(0);
   const history = useHistory();
-  const [currentPage, setCurrentPage] = useState(0);
   useEffect(() => {
     loadPage();
   }, []);
@@ -27,7 +29,6 @@ const UserContainerHook = (
   useEffect(() => {
     setPageCount(totalPage);
   }, [totalPage]);
-  // useEffect(() => {}, [offset]);
   const usePrevious = (value) => {
     const ref = useRef();
 
@@ -56,24 +57,13 @@ const UserContainerHook = (
   };
 
   const deleteUserData = async (id, name, page) => {
-    console.log(
-      "%c 🇦🇬: deleteUserData -> page ",
-      "font-size:16px;background-color:#875f40;color:white;",
-      page
-    );
     if (window.confirm(`Are you sure you want to Delete ${name}?`)) {
       await deleteUsers(id);
     } else {
       history.push("/home");
     }
-    console.log(
-      "%c 🍽️: users.length ",
-      "font-size:16px;background-color:#c9273a;color:white;",
-      users.length
-    );
+
     if (userData.length === 1) {
-      // fetchAllUsers(offset - 1, perPage);
-      // setOffset(offset - 1);
       fetchAllUsers(1, perPage);
       setOffset(1);
     } else {
@@ -97,11 +87,9 @@ const UserContainerHook = (
   };
   const addUser = async () => {
     history.push("/adduser");
-    // fetchAllUsers(offset, perPage);
   };
   const editUserData = async (id) => {
     history.push(`/updateuser/${id}`);
-    // fetchAllUsers(offset, perPage);
   };
   const onValueChange = (e) => {
     const searchTerm = e.currentTarget.value;
@@ -128,7 +116,7 @@ const UserContainerHook = (
           <div className="w-100 mt-mb-10  justify-content-left ui icon input">
             <input
               type="search "
-              placeholder="Search Users"
+              placeholder="Search for Users or Email "
               className="mt-mb-7 form-control  "
               // v
               name="searchTerm"
@@ -178,7 +166,6 @@ const UserContainerHook = (
               ))}
             </tbody>
           </table>
-          {console.log("pageCount 11", pageCount, offset)}
           <ReactPaginate
             previousLabel={"prev"}
             nextLabel={"next"}
@@ -191,15 +178,7 @@ const UserContainerHook = (
             containerClassName={"pagination"}
             subContainerClassName={"pages pagination"}
             activeClassName={"active"}
-            // currentPage={offset - 1}
             forcePage={offset - 1}
-
-            // 					pageCount={(userData?.count || 5) / pageSize}
-
-            // previousLinkClassName={"pagination__link"}
-            // nextLinkClassName={"pagination__link"}
-            // disabledClassName={"pagination__link--disabled"}
-            // activeClassName={"active"}
           />
         </div>
       </Router>
@@ -207,11 +186,6 @@ const UserContainerHook = (
   );
 };
 const mapStateToProps = (state) => {
-  console.log(
-    "%c 👨‍👩‍👦: mapStateToProps -> state ",
-    "font-size:16px;background-color:#327d18;color:white;",
-    state
-  );
   const { users, loading, page } = state;
   return {
     userData: users,
